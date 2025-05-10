@@ -32,11 +32,22 @@
     width: 100px;
     height: 100px;
     font-size: 2em;
-    background-color: #eee;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    background-color: #f0f0f0; /* Grundfarbe */
+    border: 2px solid #333;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  /* Farbgestaltung für X und O */
+  .x {
+    background-color: #ffe0e0; /* Hellrot für X */
+    color: #b00; /* Dunkelrot für das X */
+  }
+  .o {
+    background-color: #e0e0ff; /* Hellblau für O */
+    color: #00b; /* Dunkelblau für das O */
   }
   #status {
     margin-top: 20px;
@@ -81,6 +92,9 @@
 
     board[index] = currentPlayer;
     e.target.innerText = currentPlayer;
+    // Klassen für Farben entfernen und neu hinzufügen
+    e.target.classList.remove('x', 'o');
+    e.target.classList.add(currentPlayer.toLowerCase());
 
     if (checkWin()) {
       statusDiv.innerText = `Spieler ${currentPlayer} gewinnt!`;
@@ -94,7 +108,7 @@
       return;
     }
 
-    // Wechsel des Spielers
+    // Spieler wechseln
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
     statusDiv.innerText = `Dein Zug: ${currentPlayer}`;
   }
