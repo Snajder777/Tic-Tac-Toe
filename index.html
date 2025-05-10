@@ -8,152 +8,91 @@
 
 <title>Tic Tac Toe</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin-top: 20px;
-  }
-  h1 {
-    margin-bottom: 10px;
-  }
-  #spielerInput {
-    margin-bottom: 20px;
-  }
-  label {
-    margin: 0 10px;
-  }
-  #board {
-    display: grid;
-    grid-template-columns: repeat(3, 100px);
-    gap: 10px;
-    justify-content: center;
-    margin: 0 auto;
-  }
-  .cell {
-    width: 100px;
-    height: 100px;
-    font-size: 2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: #f0f0f0;
-    border: 2px solid #333;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  /* Farben für X und O */
-  .x {
-    background-color: #ffe0e0;
-    color: #b00;
-  }
-  .o {
-    background-color: #e0e0ff;
-    color: #00b;
-  }
-  #status {
-    margin-top: 20px;
-    font-size: 1.2em;
-  }
+ body {
+ font-family: Arial, sans-serif;
+ text-align: center;
+ margin-top: 20px;
+ }
+ h1 {
+ margin-bottom: 10px;
+ }
+ #creator {
+ font-size: 1em;
+ margin-bottom: 20px;
+ font-weight: bold;
+ }
+ #spielerInput {
+ margin-bottom: 20px;
+ }
+ label {
+ margin: 0 10px;
+ }
+ #board {
+ display: grid;
+ grid-template-columns: repeat(3, 100px);
+ gap: 10px;
+ justify-content: center;
+ margin: 0 auto;
+ }
+ .cell {
+ width: 100px;
+ height: 100px;
+ font-size: 2em;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ background-color: #f0f0f0;
+ justify-content: center;
+ cursor: pointer;
+ background-color: #f0f0f0;
+ 0f0f0;
+ border: 2px solid #333;
+ transition: background-color 0.3s, color 0.3s;
+ }
+ /* Farben für X und O */
+ .x {
+ background-color: #ffe0e0;
+ color: #b00;
+ }
+ .o {
+ background-color: #e0e0ff;
+ color: #00b;
+ }
+ #status {
+ margin-top: 20px;
+ font-size: 1.2em;
+ }
 </style>
 </head>
 <body>
 
 <h1>Tic Tac Toe</h1>
+<div id="creator">Spiel erstellt von Rudi Schneider</div>
 
 <div id="spielerInput">
-  <h2>Spielername eingeben</h2>
-  <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
-  <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
-  <button id="startBtn">Starten</button>
+ <h2>Spielername eingeben</h2>
+ <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
+ <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
+ <button id="startBtn">Starten</button>
 </div>
 
 <div id="spielerNames"></div>
 <div id="status">Bitte Namen eingeben und starten</div>
 
 <div id="board">
-  <div class="cell" data-index="0"></div>
-  <div class="cell" data-index="1"></div>
-  <div class="cell" data-index="2"></div>
-  <div class="cell" data-index="3"></div>
-  <div class="cell" data-index="4"></div>
-  <div class="cell" data-index="5"></div>
-  <div class="cell" data-index="6"></div>
-  <div class="cell" data-index="7"></div>
-  <div class="cell" data-index="8"></div>
+ <div class="cell" data-index="0"></div>
+ <div class="cell" data-index="1"></div>
+ <div class="cell" data-index="2"></div>
+ <div class="cell" data-index="3"></div>
+ <div class="cell" data-index="4"></div>
+ <div class="cell" data-index="5"></div>
+ <div class="cell" data-index="6"></div>
+ <div class="cell" data-index="7"></div>
+ <div class="cell" data-index="8"></div>
 </div>
 
 <script>
-  const cells = document.querySelectorAll('.cell');
-  const statusDiv = document.getElementById('status');
-  const spielerNamesDiv = document.getElementById('spielerNames');
-  const startBtn = document.getElementById('startBtn');
-  const inputPlayer1 = document.getElementById('player1');
-  const inputPlayer2 = document.getElementById('player2');
-
-  let board = ['', '', '', '', '', '', '', '', ''];
-  let currentPlayer = 'X';
-  let gameActive = false; // Spiel erst starten, wenn „Starten“ geklickt wird
-
-  let player1Name = '';
-  let player2Name = '';
-
-  const winningConditions = [
-    [0,1,2], [3,4,5], [6,7,8],
-    [0,3,6], [1,4,7], [2,5,8],
-    [0,4,8], [2,4,6]
-  ];
-
-  // Startknopf
-  document.getElementById('startBtn').onclick = () => {
-    player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
-    player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
-
-    spielerNamesDiv.innerText = `${player1Name} (X) vs ${player2Name} (O)`;
-    statusDiv.innerText = `Dein Zug: ${player1Name} (${currentPlayer})`;
-    board = ['', '', '', '', '', '', '', '', ''];
-    cells.forEach(c => { c.innerText=''; c.classList.remove('x','o'); });
-    currentPlayer = 'X';
-    gameActive = true;
-  };
-
-  function handleCellClick(e) {
-    if (!gameActive) return;
-    const index = e.target.dataset.index;
-    if (board[index] !== '') return;
-
-    board[index] = currentPlayer;
-    e.target.innerText = currentPlayer;
-    e.target.classList.remove('x', 'o');
-    e.target.classList.add(currentPlayer.toLowerCase());
-
-    if (checkWin()) {
-      statusDiv.innerText = `${currentPlayer === 'X' ? player1Name : player2Name} gewinnt!`;
-      gameActive = false;
-      return;
-    }
-
-    if (board.every(cell => cell !== '')) {
-      statusDiv.innerText = "Unentschieden!";
-      gameActive = false;
-      return;
-    }
-
-    // Spieler wechseln
-    currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
-    const aktuellerName = currentPlayer === 'X' ? player1Name : player2Name;
-    statusDiv.innerText = `Dein Zug: ${aktuellerName} (${currentPlayer})`;
-  }
-
-  function checkWin() {
-    return winningConditions.some(condition => {
-      const [a, b, c] = condition;
-      return board[a] !== '' && board[a] === board[b] && board[b] === board[c];
-    });
-  }
-
-  // Event-Listener für alle Zellen
-  cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-</script>
-
-</body>
-</html>
+ const cells = document.querySelectorAll('.cell');
+ const = document.querySelectorAll('.cell');
+ const
