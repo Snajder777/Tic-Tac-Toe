@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<!-- Google Verifizierungs-Meta-Tag -->
 <meta name="google-site-verification" content="95by_B3PFINR5xNptpXpU4g8LTXl_GmZgFNAhSNYnCc" />
 
 <title>Tic Tac Toe</title>
@@ -42,7 +41,7 @@
     color: #fff;
   }
 
-  #startBtn {
+  #startBtn, #restartBtn {
     background-color: #fff;
     border: none;
     padding: 10px 20px;
@@ -51,10 +50,21 @@
     cursor: pointer;
     box-shadow: 2px 2px 8px #00000033;
     transition: 0.3s;
+    margin-top: 10px;
   }
 
-  #startBtn:hover {
+  #startBtn:hover, #restartBtn:hover {
     background-color: #ffe;
+  }
+
+  #farbeAuswahl {
+    margin-top: 10px;
+  }
+
+  #farbeAuswahl label {
+    font-size: 0.9em;
+    margin: 0 10px;
+    color: #fff;
   }
 
   #board {
@@ -86,7 +96,7 @@
     box-shadow: inset 0 0 15px #00000055, 0 6px 12px #00000055;
   }
 
-  /* Farben für X und O */
+  /* Farben für X und O (kann überschrieben werden) */
   .x {
     background-color: #ffcccc;
     color: #b00;
@@ -105,6 +115,12 @@
     color: #fff;
     text-shadow: 1px 1px 2px #00000055;
   }
+
+  #punkte {
+    margin-top: 20px;
+    font-size: 1em;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -116,11 +132,25 @@
   <h2>Spielername eingeben</h2>
   <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
   <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
+  <br>
   <button id="startBtn">Starten</button>
 </div>
 
 <div id="spielerNames"></div>
 <div id="status">Bitte Namen eingeben und starten</div>
+
+<div id="punkte"></div>
+
+<div id="farbeAuswahl">
+  <button id="farbeXBtn">Farbe X ändern</button>
+  <button id="farbeOBtn">Farbe O ändern</button>
+</div>
+
+<div id="farbePicker" style="display:none; margin-top:10px;">
+  <input type="color" id="farbeX" value="#ff0000">
+  <input type="color" id="farbeO" value="#0000ff">
+  <button id="farbeSpeichern">Farbe speichern</button>
+</div>
 
 <div id="board">
   <div class="cell" data-index="0"></div>
@@ -134,20 +164,33 @@
   <div class="cell" data-index="8"></div>
 </div>
 
+<button id="restartBtn">Neustarten</button>
+
 <script>
   const cells = document.querySelectorAll('.cell');
   const statusDiv = document.getElementById('status');
   const spielerNamesDiv = document.getElementById('spielerNames');
   const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
   const inputPlayer1 = document.getElementById('player1');
   const inputPlayer2 = document.getElementById('player2');
 
+  const farbeXBtn = document.getElementById('farbeXBtn');
+  const farbeOBtn = document.getElementById('farbeOBtn');
+  const farbePickerDiv = document.getElementById('farbePicker');
+  const farbeXInput = document.getElementById('farbeX');
+  const farbeOInput = document.getElementById('farbeO');
+  const farbeSpeichernBtn = document.getElementById('farbeSpeichern');
+
   let board = ['', '', '', '', '', '', '', '', ''];
   let currentPlayer = 'X';
-  let gameActive = false; // Spiel erst starten, wenn „Starten“ geklickt wird
+  let gameActive = false;
 
   let player1Name = '';
   let player2Name = '';
+
+  let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
+  let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
 
   const winningConditions = [
     [0,1,2], [3,4,5], [6,7,8],
@@ -155,7 +198,20 @@
     [0,4,8], [2,4,6]
   ];
 
-  // Startknopf
+  // Punkteanzeige
+  const punktAnzeige1 = document.createElement('div');
+  const punktAnzeige2 = document.createElement('div');
+
+  function updatePunkte() {
+    punktAnzeige1.innerHTML = `Spieler 1 (X): ${punkteSpieler1}`;
+    punktAnzeige2.innerHTML = `Spieler 2 (O): ${punkteSpieler2}`;
+    document.body.insertBefore(punktAnzeige1, document.body.firstChild);
+    document.body.insertBefore(punktAnzeige2, document.body.firstChild);
+  }
+
+  updatePunkte();
+
+  // Start Button
   document.getElementById('startBtn').onclick = () => {
     player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
     player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
@@ -168,44 +224,5 @@
     gameActive = true;
   };
 
-  function handleCellClick(e) {
-    if (!gameActive) return;
-    const index = e.target.dataset.index;
-    if (board[index] !== '') return;
-
-    board[index] = currentPlayer;
-    e.target.innerText = currentPlayer;
-    e.target.classList.remove('x', 'o');
-    e.target.classList.add(currentPlayer.toLowerCase());
-
-    if (checkWin()) {
-      statusDiv.innerText = `${currentPlayer === 'X' ? player1Name : player2Name} gewinnt!`;
-      gameActive = false;
-      return;
-    }
-
-    if (board.every(cell => cell !== '')) {
-      statusDiv.innerText = "Unentschieden!";
-      gameActive = false;
-      return;
-    }
-
-    // Spieler wechseln
-    currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
-    const aktuellerName = currentPlayer === 'X' ? player1Name : player2Name;
-    statusDiv.innerText = `Dein Zug: ${aktuellerName} (${currentPlayer})`;
-  }
-
-  function checkWin() {
-    return winningConditions.some(condition => {
-      const [a, b, c] = condition;
-      return board[a] !== '' && board[a] === board[b] && board[b] === board[c];
-    });
-  }
-
-  // Event-Listener für alle Zellen
-  cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-</script>
-
-</body>
-</html>
+  // Neustart Button
+  document.getElementById('restartBtn').onclick =
