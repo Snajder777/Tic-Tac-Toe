@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tic Tac Toe mit Extras</title>
+<title>Tic Tac Toe mit Farben & Punkten</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
@@ -16,13 +16,11 @@
   h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px #000;
   }
   #creator {
     font-size: 1.2em;
     margin-bottom: 20px;
     font-weight: bold;
-    text-shadow: 1px 1px 2px #000;
   }
   #spielerInput {
     margin-bottom: 20px;
@@ -39,16 +37,9 @@
     cursor: pointer;
     font-weight: bold;
     box-shadow: 2px 2px 8px #000;
-    transition: background 0.3s;
   }
   #startBtn:hover, #restartBtn:hover {
     background: #ffe;
-  }
-  #farbeAuswahl {
-    margin-top: 10px;
-  }
-  #farbeAuswahl button {
-    margin: 0 10px;
   }
   #board {
     display: grid;
@@ -109,17 +100,6 @@
 <div id="status">Bitte Namen eingeben und starten</div>
 <div id="punkte"></div>
 
-<div id="farbeAuswahl">
-  <button id="farbeXBtn">Farbe X ändern</button>
-  <button id="farbeOBtn">Farbe O ändern</button>
-</div>
-
-<div id="farbePicker" style="display:none; margin-top:10px;">
-  <input type="color" id="farbeX" value="#ff0000">
-  <input type="color" id="farbeO" value="#0000ff">
-  <button id="farbeSpeichern">Farbe speichern</button>
-</div>
-
 <div id="board">
   <div class="cell" data-index="0"></div>
   <div class="cell" data-index="1"></div>
@@ -132,22 +112,11 @@
   <div class="cell" data-index="8"></div>
 </div>
 
-<button id="restartBtn">Neustarten</button>
-
 <script>
   const cells = document.querySelectorAll('.cell');
   const statusDiv = document.getElementById('status');
   const spielerNamesDiv = document.getElementById('spielerNames');
   const startBtn = document.getElementById('startBtn');
-  const restartBtn = document.getElementById('restartBtn');
-  const inputPlayer1 = document.getElementById('player1');
-  const inputPlayer2 = document.getElementById('player2');
-  const farbeXBtn = document.getElementById('farbeXBtn');
-  const farbeOBtn = document.getElementById('farbeOBtn');
-  const farbePickerDiv = document.getElementById('farbePicker');
-  const farbeXInput = document.getElementById('farbeX');
-  const farbeOInput = document.getElementById('farbeO');
-  const farbeSpeichernBtn = document.getElementById('farbeSpeichern');
 
   let board = ['', '', '', '', '', '', '', '', ''];
   let currentPlayer = 'X';
@@ -155,8 +124,6 @@
 
   let player1Name = '';
   let player2Name = '';
-  let farbeX = '#ff0000'; // Standardfarben
-  let farbeO = '#0000ff';
 
   let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
   let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
@@ -167,6 +134,7 @@
     [0,4,8], [2,4,6]
   ];
 
+  // Punkteanzeige
   const punktAnzeige1 = document.createElement('div');
   const punktAnzeige2 = document.createElement('div');
 
@@ -178,7 +146,9 @@
   }
   updatePunkte();
 
+  // Start Button
   document.getElementById('startBtn').onclick = () => {
+    // Namen holen
     player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
     player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
 
@@ -190,20 +160,54 @@
     gameActive = true;
   };
 
-  document.getElementById('restartBtn').onclick = () => {
-    board = ['', '', '', '', '', '', '', '', ''];
-    cells.forEach(c => { c.innerText=''; c.classList.remove('x','o'); });
-    currentPlayer = 'X';
-    statusDiv.innerText = `Dein Zug: ${player1Name} (${currentPlayer})`;
-    gameActive = true;
-  };
+  // Spiel starten
+  function handleCellClick(e) {
+    if (!gameActive) return;
+    const index = e.target.dataset.index;
+    if (board[index] !== '') return;
 
-  document.getElementById('farbeXBtn').onclick = () => {
-    document.getElementById('farbePicker').style.display = 'block';
-  };
-  document.getElementById('farbeOBtn').onclick = () => {
-    document.getElementById('farbePicker').style.display = 'block';
-  };
-  document.getElementById('farbeSpeichern').onclick = () => {
-    farbeX = farbeXInput.value;
-    farbeO = farbeOInput.value;
+    board[index] = currentPlayer;
+    e.target.innerText = currentPlayer;
+    e.target.classList.remove('x','o');
+    e.target.classList.add(currentPlayer.toLowerCase());
+
+    if (checkWin()) {
+      alert(`${currentPlayer === 'X' ? player1Name : player2Name} gewinnt!`);
+      // Punkte zählen
+      if (currentPlayer === 'X') {
+        punkteSpieler1++;
+        localStorage.setItem('punkteSpieler1', punkteSpieler1);
+      } else {
+        punkteSpieler2++;
+        localStorage.setItem('punkteSpieler2', punkteSpieler2);
+      }
+      updatePunkte();
+
+      gameActive = false;
+      return;
+    }
+
+    if (board.every(c => c !== '')) {
+      alert('Unentschieden!');
+      gameActive = false;
+      return;
+    }
+
+    // Wechsle Spieler
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    const name = currentPlayer === 'X' ? player1Name : player2Name;
+    statusDiv.innerText = `Dein Zug: ${name} (${currentPlayer})`;
+  }
+
+  function checkWin() {
+    return winningConditions.some(c => {
+      const [a, b, c1] = c;
+      return board[a] !== '' && board[a] === board[b] && board[b] === board[c1];
+    });
+  }
+
+  // Event-Listener für alle Zellen
+  cells.forEach(c => c.addEventListener('click', handleCellClick));
+</script>
+</body>
+</html>
