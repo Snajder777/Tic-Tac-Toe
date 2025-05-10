@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tic Tac Toe mit KI & Mehr</title>
 <style>
-  /* (Hier bleibt alles gleich, siehe vorherigen Code, nur Style-Teil unverändert) */
   body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #89f7fe, #66a6ff);
@@ -73,7 +72,7 @@
 </div>
 
 <!-- Eingabefelder für Namen -->
-<div id="spielerInput">
+<div id="spielerInput" style="display:none;">
   <h2>Spielername eingeben</h2>
   <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
   <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
@@ -143,7 +142,7 @@ function updatePunkte() {
 }
 updatePunkte();
 
-// Modus Buttons
+// Modus wählen
 gegenFreundBtn.onclick = () => {
   gegenComputer = false;
   document.getElementById('spielerInput').style.display = 'block';
@@ -182,10 +181,17 @@ function startGame() {
   currentPlayer = 'X';
   gameActive = true;
   document.getElementById('restartBtn').style.display='block';
+
+  // Wenn gegen Computer, dann erster Zug automatisiert
+  if (gegenComputer && currentPlayer === 'O') {
+    computerMove();
+  }
 }
 
-// Spiel-Logik
 function handleCellClick(e) {
   if (!gameActive) return;
   const index = e.target.dataset.index;
-  if (
+  if (board[index] !== '') return;
+
+  board[index] = currentPlayer;
+  e.target.innerText
