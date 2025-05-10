@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="google-site-verification" content="95by_B3PFINR5xNptpXpU4g8LTXl_GmZgFNAhSNYnCc" />
-
-<title>Tic Tac Toe</title>
+<title>Tic Tac Toe mit Extras</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
@@ -13,60 +11,45 @@
     text-align: center;
     padding: 20px;
     margin-top: 20px;
-    color: #333;
+    color: #fff;
   }
-
   h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
-    color: #fff;
-    text-shadow: 2px 2px 4px #00000055;
+    text-shadow: 2px 2px 4px #000;
   }
-
   #creator {
     font-size: 1.2em;
     margin-bottom: 20px;
-    color: #fff;
     font-weight: bold;
-    text-shadow: 1px 1px 2px #00000055;
+    text-shadow: 1px 1px 2px #000;
   }
-
   #spielerInput {
     margin-bottom: 20px;
   }
-
   label {
     margin: 0 10px;
-    font-size: 1em;
-    color: #fff;
   }
-
   #startBtn, #restartBtn {
-    background-color: #fff;
-    border: none;
+    margin-top: 10px;
     padding: 10px 20px;
-    font-size: 1em;
+    background: #fff;
+    border: none;
     border-radius: 8px;
     cursor: pointer;
-    box-shadow: 2px 2px 8px #00000033;
-    transition: 0.3s;
-    margin-top: 10px;
+    font-weight: bold;
+    box-shadow: 2px 2px 8px #000;
+    transition: background 0.3s;
   }
-
   #startBtn:hover, #restartBtn:hover {
-    background-color: #ffe;
+    background: #ffe;
   }
-
   #farbeAuswahl {
     margin-top: 10px;
   }
-
-  #farbeAuswahl label {
-    font-size: 0.9em;
+  #farbeAuswahl button {
     margin: 0 10px;
-    color: #fff;
   }
-
   #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
@@ -74,7 +57,6 @@
     justify-content: center;
     margin: 20px auto;
   }
-
   .cell {
     width: 100px;
     height: 100px;
@@ -85,41 +67,28 @@
     cursor: pointer;
     background: #fff;
     border-radius: 12px;
-    box-shadow: inset 0 0 10px #00000033, 0 4px 8px #00000033;
+    box-shadow: inset 0 0 10px #0003, 0 4px 8px #0003;
     transition: all 0.3s ease;
     font-weight: bold;
     color: #444;
   }
-
-  .cell:hover {
-    transform: scale(1.05);
-    box-shadow: inset 0 0 15px #00000055, 0 6px 12px #00000055;
-  }
-
-  /* Farben für X und O (kann überschrieben werden) */
   .x {
-    background-color: #ffcccc;
+    background-color: #ffe0e0;
     color: #b00;
     border: 3px solid #b00;
   }
-
   .o {
-    background-color: #ccccff;
+    background-color: #e0e0ff;
     color: #00b;
     border: 3px solid #00b;
   }
-
   #status {
     margin-top: 20px;
     font-size: 1.2em;
-    color: #fff;
-    text-shadow: 1px 1px 2px #00000055;
   }
-
   #punkte {
-    margin-top: 20px;
+    margin-top: 10px;
     font-size: 1em;
-    color: #fff;
   }
 </style>
 </head>
@@ -138,7 +107,6 @@
 
 <div id="spielerNames"></div>
 <div id="status">Bitte Namen eingeben und starten</div>
-
 <div id="punkte"></div>
 
 <div id="farbeAuswahl">
@@ -174,7 +142,6 @@
   const restartBtn = document.getElementById('restartBtn');
   const inputPlayer1 = document.getElementById('player1');
   const inputPlayer2 = document.getElementById('player2');
-
   const farbeXBtn = document.getElementById('farbeXBtn');
   const farbeOBtn = document.getElementById('farbeOBtn');
   const farbePickerDiv = document.getElementById('farbePicker');
@@ -188,6 +155,8 @@
 
   let player1Name = '';
   let player2Name = '';
+  let farbeX = '#ff0000'; // Standardfarben
+  let farbeO = '#0000ff';
 
   let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
   let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
@@ -198,7 +167,6 @@
     [0,4,8], [2,4,6]
   ];
 
-  // Punkteanzeige
   const punktAnzeige1 = document.createElement('div');
   const punktAnzeige2 = document.createElement('div');
 
@@ -208,10 +176,8 @@
     document.body.insertBefore(punktAnzeige1, document.body.firstChild);
     document.body.insertBefore(punktAnzeige2, document.body.firstChild);
   }
-
   updatePunkte();
 
-  // Start Button
   document.getElementById('startBtn').onclick = () => {
     player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
     player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
@@ -224,5 +190,20 @@
     gameActive = true;
   };
 
-  // Neustart Button
-  document.getElementById('restartBtn').onclick =
+  document.getElementById('restartBtn').onclick = () => {
+    board = ['', '', '', '', '', '', '', '', ''];
+    cells.forEach(c => { c.innerText=''; c.classList.remove('x','o'); });
+    currentPlayer = 'X';
+    statusDiv.innerText = `Dein Zug: ${player1Name} (${currentPlayer})`;
+    gameActive = true;
+  };
+
+  document.getElementById('farbeXBtn').onclick = () => {
+    document.getElementById('farbePicker').style.display = 'block';
+  };
+  document.getElementById('farbeOBtn').onclick = () => {
+    document.getElementById('farbePicker').style.display = 'block';
+  };
+  document.getElementById('farbeSpeichern').onclick = () => {
+    farbeX = farbeXInput.value;
+    farbeO = farbeOInput.value;
