@@ -15,15 +15,9 @@
   }
   h1 { font-size: 2.5em; margin-bottom: 10px; }
   #creator { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
-  #modus {
-    margin-bottom: 10px;
-  }
-  #spielerInput, #schwierigkeit {
-    margin-bottom: 20px;
-  }
-  label {
-    margin: 0 10px;
-  }
+  #modus { margin-bottom: 10px; }
+  #spielerInput { margin-bottom: 20px; display: none; }
+  label { margin: 0 10px; }
   button {
     margin-top: 10px;
     padding: 10px 20px;
@@ -34,9 +28,8 @@
     font-weight: bold;
     box-shadow: 2px 2px 8px #000;
   }
-  button:hover {
-    background: #ffe;
-  }
+  button:hover { background: #ffe; }
+  #schwierigkeit { display: none; margin-top: 10px; }
   #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
@@ -72,8 +65,8 @@
 
 <!-- Modus-Auswahl -->
 <div id="modus">
-  <button id="spielerGegenSpieler">Gegen Freund</button>
-  <button id="spielerGegenComputer">Gegen Computer</button>
+  <button id="gegenFreund">Gegen Freund</button>
+  <button id="gegenComputer">Gegen Computer</button>
 </div>
 
 <!-- Schwierigkeitsgrad nur bei gegen Computer -->
@@ -118,10 +111,8 @@ const spielerNamesDiv = document.getElementById('spielerNames');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 
-const modusButtons = {
-  gegenSpieler: document.getElementById('spielerGegenSpieler'),
-  gegenComputer: document.getElementById('spielerGegenComputer')
-};
+const gegenFreundBtn = document.getElementById('gegenFreund');
+const gegenComputerBtn = document.getElementById('gegenComputer');
 const schwierigkeitDiv = document.getElementById('schwierigkeit');
 
 const schwierigkeitButtons = schwierigkeitDiv.querySelectorAll('button');
@@ -134,7 +125,7 @@ let currentPlayer = 'X';
 let gameActive = false;
 
 let gegenComputer = false;
-let schwierigkeit = 1; // 1 = leicht, 2 = mittel, 3 = schwer
+let schwierigkeitsStufe = 1; // 1=leicht,2=mittel,3=schwer
 let spieler1Name = '';
 let spieler2Name = '';
 
@@ -158,31 +149,28 @@ function updatePunkte() {
 }
 updatePunkte();
 
-// Modus wählen
-modusButtons.gegenSpieler.onclick = () => {
+gegenFreundBtn.onclick = () => {
   gegenComputer = false;
   document.getElementById('spielerInput').style.display = 'block';
-  schwierigkeitDiv.style.display = 'none';
-  document.getElementById('restartBtn').style.display = 'none';
-  document.getElementById('status').innerText = 'Namen eingeben und starten!';  
+  document.getElementById('schwierigkeit').style.display='none';
+  document.getElementById('restartBtn').style.display='none';
+  document.getElementById('status').innerText = 'Namen eingeben und starten!';
 };
-modusButtons.gegenComputer.onclick = () => {
+gegenComputerBtn.onclick = () => {
   gegenComputer = true;
   document.getElementById('spielerInput').style.display = 'block';
-  schwierigkeitDiv.style.display = 'block';
-  document.getElementById('restartBtn').style.display = 'none';
-  document.getElementById('status').innerText = 'Namen eingeben und starten!';  
+  document.getElementById('schwierigkeit').style.display='block';
+  document.getElementById('restartBtn').style.display='none';
+  document.getElementById('status').innerText = 'Namen eingeben und starten!';
 };
 
-// Schwierigkeitsgrad wählen
 schwierigkeitButtons.forEach(btn => {
   btn.onclick = () => {
-    schwierigkeit = parseInt(btn.dataset.difficulty);
+    schwierigkeitsStufe = parseInt(btn.dataset.difficulty);
     startGame();
   };
 });
 
-// Starten
 document.getElementById('startBtn').onclick = () => {
   spieler1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
   spieler2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
@@ -196,4 +184,19 @@ function startGame() {
   cells.forEach(c => { c.innerText=''; c.classList.remove('x','o'); });
   currentPlayer = 'X';
   gameActive = true;
-  document.getElementById('restartBtn
+  document.getElementById('restartBtn').style.display='block';
+}
+
+// Spiel-Logik
+function handleCellClick(e) {
+  if (!gameActive) return;
+  const index = e.target.dataset.index;
+  if (board[index] !== '') return;
+
+  board[index] = currentPlayer;
+  e.target.innerText = currentPlayer;
+  e.target.classList.remove('x','o');
+  e.target.classList.add(currentPlayer.toLowerCase());
+
+  if (checkWin()) {
+    alert(`${
