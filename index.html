@@ -3,32 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tic Tac Toe mit KI & Mehr</title>
+<title>Tic Tac Toe</title>
 <style>
   body {
-    font-family: 'Arial', sans-serif;
+    font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #89f7fe, #66a6ff);
     text-align: center;
     padding: 20px;
-    margin-top: 20px;
-    color: #fff;
   }
   h1 { font-size: 2.5em; margin-bottom: 10px; }
-  #creator { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
-  #modus { margin-bottom: 10px; }
-  #spielerInput, #schwierigkeit { margin-bottom: 20px; display: none; }
-  label { margin: 0 10px; }
-  button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    background: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 2px 2px 8px #000;
-  }
-  button:hover { background: #ffe; }
+  #startBtn { padding: 10px 20px; font-size: 1em; cursor: pointer; }
   #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
@@ -37,58 +21,27 @@
     margin: 20px auto;
   }
   .cell {
-    width: 100px;
-    height: 100px;
-    font-size: 2.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background: #fff;
-    border-radius: 12px;
+    width: 100px; height: 100px;
+    font-size: 2em; line-height: 100px;
+    background: #fff; border-radius: 12px; cursor: pointer;
     box-shadow: inset 0 0 10px #0003, 0 4px 8px #0003;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    color: #444;
+    transition: all 0.3s;
   }
-  .x { background-color: #ffe0e0; color: #b00; border: 3px solid #b00; }
-  .o { background-color: #e0e0ff; color: #00b; border: 3px solid #00b; }
-  #status { margin-top: 20px; font-size: 1.2em; }
-  #punkte { margin-top: 10px; font-size: 1em; }
+  .cell:hover { transform: scale(1.05); box-shadow: inset 0 0 15px #0005, 0 6px 12px #0005; }
 </style>
 </head>
 <body>
 
 <h1>Tic Tac Toe</h1>
-<div id="creator">Spiel erstellt von Rudi Schneider</div>
-
-<!-- Modus-Auswahl -->
-<div id="modus">
-  <button id="gegenFreund">Gegen Freund</button>
-  <button id="gegenComputer">Gegen Computer</button>
+<div>
+  Name Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" />
 </div>
-
-<!-- Schwierigkeitsgrad nur bei gegen Computer -->
-<div id="schwierigkeit" style="display:none;">
-  <h3>Schwierigkeitsgrad wählen</h3>
-  <button data-difficulty="1">Leicht</button>
-  <button data-difficulty="2">Mittel</button>
-  <button data-difficulty="3">Schwer</button>
+<div>
+  Name Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" />
 </div>
+<button id="startBtn">Starten</button>
 
-<!-- Eingabefelder für Namen -->
-<div id="spielerInput">
-  <h2>Spielername eingeben</h2>
-  <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
-  <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
-  <br>
-  <button id="startBtn">Starten</button>
-</div>
-
-<div id="spielerNames"></div>
-<div id="status">Bitte Modus wählen</div>
-<div id="punkte"></div>
-
+<div id="status">Bitte Namen eingeben und starten</div>
 <div id="board">
   <div class="cell" data-index="0"></div>
   <div class="cell" data-index="1"></div>
@@ -101,97 +54,72 @@
   <div class="cell" data-index="8"></div>
 </div>
 
-<button id="restartBtn" style="display:none;">Neustarten</button>
-
 <script>
 const cells = document.querySelectorAll('.cell');
 const statusDiv = document.getElementById('status');
-const spielerNamesDiv = document.getElementById('spielerNames');
 const startBtn = document.getElementById('startBtn');
-const restartBtn = document.getElementById('restartBtn');
-
-const gegenFreundBtn = document.getElementById('gegenFreund');
-const gegenComputerBtn = document.getElementById('gegenComputer');
-const schwierigkeitDiv = document.getElementById('schwierigkeit');
-
-const schwierigkeitButtons = schwierigkeitDiv.querySelectorAll('button');
-
-const inputPlayer1 = document.getElementById('player1');
-const inputPlayer2 = document.getElementById('player2');
+const player1Input = document.getElementById('player1');
+const player2Input = document.getElementById('player2');
 
 let board = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
 let gameActive = false;
+let player1Name = '';
+let player2Name = '';
 
-let gegenComputer = false;
-let schwierigkeitsStufe = 1; // 1=leicht,2=mittel,3=schwer
-let spieler1Name = '';
-let spieler2Name = '';
-
-let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
-let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
-
-const winningConditions = [
+const winCond = [
   [0,1,2], [3,4,5], [6,7,8],
   [0,3,6], [1,4,7], [2,5,8],
   [0,4,8], [2,4,6]
 ];
 
-const punktAnzeige1 = document.createElement('div');
-const punktAnzeige2 = document.createElement('div');
-
-function updatePunkte() {
-  punktAnzeige1.innerHTML = `Spieler 1 (X): ${punkteSpieler1}`;
-  punktAnzeige2.innerHTML = `Spieler 2 (O): ${punkteSpieler2}`;
-  document.body.insertBefore(punktAnzeige1, document.body.firstChild);
-  document.body.insertBefore(punktAnzeige2, document.body.firstChild);
-}
-updatePunkte();
-
-// Modus wählen
-gegenFreundBtn.onclick = () => {
-  gegenComputer = false;
-  document.getElementById('spielerInput').style.display = 'block';
-  document.getElementById('schwierigkeit').style.display='none';
-  document.getElementById('restartBtn').style.display='none';
-  document.getElementById('status').innerText = 'Namen eingeben und starten!';
-};
-gegenComputerBtn.onclick = () => {
-  gegenComputer = true;
-  document.getElementById('spielerInput').style.display = 'block';
-  document.getElementById('schwierigkeit').style.display='block';
-  document.getElementById('restartBtn').style.display='none';
-  document.getElementById('status').innerText = 'Namen eingeben und starten!';
+startBtn.onclick = () => {
+  const p1 = document.getElementById('player1').value.trim() || 'Spieler 1';
+  const p2 = document.getElementById('player2').value.trim() || 'Spieler 2';
+  player1Name = p1;
+  player2Name = p2;
+  statusDiv.innerText = `Start! ${player1Name} (X) ist am Zug.`;
+  board = ['', '', '', '', '', '', '', '', ''];
+  cells.forEach(c => { c.innerText=''; c.className='cell'; });
+  currentPlayer = 'X';
+  gameActive = true;
 };
 
-schwierigkeitButtons.forEach(btn => {
-  btn.onclick = () => {
-    schwierigkeitsStufe = parseInt(btn.dataset.difficulty);
-    startGame();
+// Spiel bei Klick auf eine Zelle
+cells.forEach(c => {
+  c.onclick = () => {
+    if (!gameActive) return;
+    const index = c.dataset.index;
+    if (board[index] !== '') return;
+    board[index] = currentPlayer;
+    c.innerText = currentPlayer;
+    // Klassen für Farben
+    c.className='cell ' + currentPlayer.toLowerCase();
+    // gewinnen prüfen
+    if (checkWin()) {
+      alert(`${currentPlayer === 'X' ? player1Name : player2Name} gewinnt!`);
+      gameActive = false;
+      return;
+    }
+    if (board.every(c => c !== '')) {
+      alert('Unentschieden!');
+      gameActive = false;
+      return;
+    }
+    // wechseln
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    const name = currentPlayer==='X' ? player1Name : player2Name;
+    statusDiv.innerText = `Dein Zug: ${name} (${currentPlayer})`;
   };
 });
 
-document.getElementById('startBtn').onclick = () => {
-  spieler1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
-  spieler2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
-  startGame();
-};
-
-function startGame() {
-  document.getElementById('spielerNames').innerText = `${spieler1Name} (X) vs ${spieler2Name} (O)`;
-  statusDiv.innerText = `Dein Zug: ${spieler1Name} (${currentPlayer})`;
-  board = ['', '', '', '', '', '', '', '', ''];
-  cells.forEach(c => { c.innerText=''; c.classList.remove('x','o'); });
-  currentPlayer = 'X';
-  gameActive = true;
-  document.getElementById('restartBtn').style.display='block';
+function checkWin() {
+  return winCond.some(c => {
+    const [a,b,c1] = c;
+    return board[a] !== '' && board[a]===board[b] && board[b]===board[c1];
+  });
 }
+</script>
 
-// Spiel-Logik
-function handleCellClick(e) {
-  if (!gameActive) return;
-  const index = e.target.dataset.index;
-  if (board[index] !== '') return;
-
-  board[index] = currentPlayer;
-  e.target.innerText = currentPlayer
+</body>
+</html>
