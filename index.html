@@ -1,14 +1,98 @@
 
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Google Verifizierungs-Meta-Tag -->
+<meta name="google-site-verification" content="95by_B3PFINR5xNptpXpU4g8LTXl_GmZgFNAhSNYnCc" />
+
+<title>Tic Tac Toe</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 20px;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  #spielerInput {
+    margin-bottom: 20px;
+  }
+  label {
+    margin: 0 10px;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 10px;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .cell {
+    width: 100px;
+    height: 100px;
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 2px solid #333;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  /* Farben für X und O */
+  .x {
+    background-color: #ffe0e0;
+    color: #b00;
+  }
+  .o {
+    background-color: #e0e0ff;
+    color: #00b;
+  }
+  #status {
+    margin-top: 20px;
+    font-size: 1.2em;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tic Tac Toe</h1>
+
+<div id="spielerInput">
+  <h2>Spielername eingeben</h2>
+  <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
+  <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
+  <button id="startBtn">Starten</button>
+</div>
+
+<div id="spielerNames"></div>
+<div id="status">Bitte Namen eingeben und starten</div>
+
+<div id="board">
+  <div class="cell" data-index="0"></div>
+  <div class="cell" data-index="1"></div>
+  <div class="cell" data-index="2"></div>
+  <div class="cell" data-index="3"></div>
+  <div class="cell" data-index="4"></div>
+  <div class="cell" data-index="5"></div>
+  <div class="cell" data-index="6"></div>
+  <div class="cell" data-index="7"></div>
+  <div class="cell" data-index="8"></div>
+</div>
+
+<script>
   const cells = document.querySelectorAll('.cell');
   const statusDiv = document.getElementById('status');
-  const playerNamesDiv = document.getElementById('playerNames');
+  const spielerNamesDiv = document.getElementById('spielerNames');
   const startBtn = document.getElementById('startBtn');
   const inputPlayer1 = document.getElementById('player1');
   const inputPlayer2 = document.getElementById('player2');
 
   let board = ['', '', '', '', '', '', '', '', ''];
-  let currentPlayer = 'X'; // Wird später durch Namen ersetzt
-  let gameActive = false;
+  let currentPlayer = 'X';
+  let gameActive = false; // Spiel erst starten, wenn „Starten“ geklickt wird
 
   let player1Name = '';
   let player2Name = '';
@@ -19,15 +103,16 @@
     [0,4,8], [2,4,6]
   ];
 
-  startBtn.onclick = () => {
-    player1Name = document.getElementById('player1').value || 'Spieler 1';
-    player2Name = document.getElementById('player2').value || 'Spieler 2';
+  // Startknopf
+  document.getElementById('startBtn').onclick = () => {
+    player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
+    player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
 
-    document.getElementById('playerNames').innerText = `${player1Name} (X) vs ${player2Name} (O)`;
-    statusDiv.innerText = `Dein Zug: ${player1Name} (X)`;
-    currentPlayer = 'X';
+    spielerNamesDiv.innerText = `${player1Name} (X) vs ${player2Name} (O)`;
+    statusDiv.innerText = `Dein Zug: ${player1Name} (${currentPlayer})`;
     board = ['', '', '', '', '', '', '', '', ''];
     cells.forEach(c => { c.innerText=''; c.classList.remove('x','o'); });
+    currentPlayer = 'X';
     gameActive = true;
   };
 
@@ -55,8 +140,8 @@
 
     // Spieler wechseln
     currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
-    const currentName = currentPlayer === 'X' ? player1Name : player2Name;
-    statusDiv.innerText = `Dein Zug: ${currentName} (${currentPlayer})`;
+    const aktuellerName = currentPlayer === 'X' ? player1Name : player2Name;
+    statusDiv.innerText = `Dein Zug: ${aktuellerName} (${currentPlayer})`;
   }
 
   function checkWin() {
@@ -66,5 +151,9 @@
     });
   }
 
+  // Event-Listener für alle Zellen
   cells.forEach(cell => cell.addEventListener('click', handleCellClick));
 </script>
+
+</body>
+</html>
