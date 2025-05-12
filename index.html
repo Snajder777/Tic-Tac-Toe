@@ -9,6 +9,7 @@
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #89f7fe, #66a6ff);
     text-align: center;
+    padding: 20px;
     margin-top: 20px;
     color: #fff;
   }
@@ -41,19 +42,22 @@
     margin: 20px auto;
   }
   .cell {
-    width: 100px; height: 100px;
-    font-size: 2.5em; line-height: 100px;
-    background: #fff; border-radius: 12px;
+    width: 100px;
+    height: 100px;
+    font-size: 2.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: #fff;
+    border-radius: 12px;
     box-shadow: inset 0 0 10px #0003, 0 4px 8px #0003;
-    cursor: pointer; font-weight: bold; color: #444;
     transition: all 0.3s;
   }
   .x { background-color: #ffe0e0; color: #b00; border: 3px solid #b00; }
   .o { background-color: #e0e0ff; color: #00b; border: 3px solid #00b; }
   #status { margin-top: 20px; font-size: 1.2em; }
   #punkte { margin-top: 10px; font-size: 1em; }
-
-  /* Werbung unten */
   #werbung {
     margin-top: 30px;
     padding: 10px;
@@ -64,7 +68,6 @@
     margin-left: auto;
     margin-right: auto;
     text-align: center;
-    font-size: 1.2em;
   }
 </style>
 </head>
@@ -86,6 +89,7 @@
 <div id="status">Bitte Namen eingeben und starten!</div>
 <div id="punkte"></div>
 
+<!-- Spielbrett -->
 <div id="board">
   <div class="cell" data-index="0"></div>
   <div class="cell" data-index="1"></div>
@@ -98,27 +102,30 @@
   <div class="cell" data-index="8"></div>
 </div>
 
-<button id="restartBtn" style="display:none;">Neustarten</button>
-
 <!-- Werbung -->
 <div id="werbung">
   Werbung hier
 </div>
 
+<!-- Neustart Button -->
+<button id="restartBtn" style="display:none;">Neustarten</button>
+
 <script>
 const cells = document.querySelectorAll('.cell');
 const statusDiv = document.getElementById('status');
-const punkteDiv = document.getElementById('punkte');
-const spielerInfoDiv = document.getElementById('spielInfo');
-
+const spielerNamesDiv = document.getElementById('spielInfo');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 
 let board = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
 let gameActive = false;
+
 let player1Name = '';
 let player2Name = '';
+
+let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
+let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
 
 const winCond = [
   [0,1,2], [3,4,5], [6,7,8],
@@ -126,40 +133,41 @@ const winCond = [
   [0,4,8], [2,4,6]
 ];
 
-let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
-let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
-
+const punktAnzeige1 = document.createElement('div');
+const punktAnzeige2 = document.createElement('div');
 function updatePunkte() {
-  punkteDiv.innerHTML = `Punkte: ${player1Name} (X): ${punkteSpieler1} &nbsp;&nbsp; ${player2Name} (O): ${punkteSpieler2}`;
+  punktAnzeige1.innerHTML = `Spieler 1 (X): ${punkteSpieler1}`;
+  punktAnzeige2.innerHTML = `Spieler 2 (O): ${punkteSpieler2}`;
+  document.body.insertBefore(punktAnzeige1, document.body.firstChild);
+  document.body.insertBefore(punktAnzeige2, document.body.firstChild);
 }
 updatePunkte();
 
+// Modus (nur gegen Freund)
+document.getElementById('gegenFreund').onclick = () => {
+  gegenComputer = false;
+  document.getElementById('spielerInput').style.display = 'block';
+  document.getElementById('restartBtn').style.display='none';
+  document.getElementById('schwierigkeit').style.display='none';
+  document.getElementById('status').innerText = 'Namen eingeben und starten!';
+};
+// Start Button
 startBtn.onclick = () => {
   player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
   player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
-
-  document.getElementById('spielInfo').innerText = `${player1Name} (X) vs ${player2Name} (O)`;
-  document.getElementById('status').innerText = `Start! ${player1Name} ist am Zug.`;
+  startGame();
+};
+function startGame() {
+  document.getElementById('spielerNames').innerText = `${player1Name} (X) vs ${player2Name} (O)`;
+  statusDiv.innerText = `Start! ${player1Name} ist am Zug.`;
   board = ['', '', '', '', '', '', '', '', ''];
   cells.forEach(c => { c.innerText=''; c.className='cell'; });
   currentPlayer = 'X';
   gameActive = true;
   document.getElementById('restartBtn').style.display='block';
-
-  // Spiel starten
-  handlePlayerMove();
-};
-
-function handlePlayerMove() {
-  if (!gameActive) return;
-  // Bei "Gegen Freund" ist alles ok.
-  // Bei "Gegen Computer": nach deinem Zug, Computer automatisch
-  if (gegenComputer && currentPlayer==='O') {
-    setTimeout(computerMove, 500); // kleine Verzögerung
-  }
 }
 
-// Spiel-Logik
+// Spiel
 cells.forEach(c => {
   c.onclick = () => {
     if (!gameActive) return;
@@ -171,13 +179,14 @@ cells.forEach(c => {
     checkGame();
   };
 });
-
 function checkGame() {
   if (checkWin()) {
-    let winnerName = currentPlayer==='X' ? player1Name : player2Name;
-    alert(winnerName + ' gewinnt!');
-    if (currentPlayer==='X') { punkteSpieler1++; localStorage.setItem('punkteSpieler1', punkteSpieler1); }
-    else { punkteSpieler2++; localStorage.setItem('punkteSpieler2', punkteSpieler2); }
+    alert(`${currentPlayer==='X'?player1Name:player2Name} gewinnt!`);
+    if (currentPlayer==='X') {
+      punkteSpieler1++; localStorage.setItem('punkteSpieler1', punkteSpieler1);
+    } else {
+      punkteSpieler2++; localStorage.setItem('punkteSpieler2', punkteSpieler2);
+    }
     updatePunkte();
     gameActive = false;
     return;
@@ -191,20 +200,11 @@ function checkGame() {
   currentPlayer = (currentPlayer==='X') ? 'O' : 'X';
   let name = currentPlayer==='X' ? player1Name : player2Name;
   document.getElementById('status').innerText = 'Dein Zug: ' + name + ' (' + currentPlayer + ')';
-  handlePlayerMove();
 }
-
+// Gewinn prüfen
 function checkWin() {
-  return winCond.some(c => {
-    const [a,b,c1] = c;
-    return board[a] !== '' && board[a]===board[b] && board[b]===board[c1];
-  });
-}
-
-// Computer Zug (leicht)
-function computerMove() {
-  let emptyCells = [];
-  board.forEach((c,i) => { if (c==='') emptyCells.push(i); });
-  if (emptyCells.length===0) return; // Spielende
-  let moveIndex = emptyCells[Math.floor(Math.random()*emptyCells.length)];
-  board[moveIndex] = 'O';
+  return [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ].some(c =>
