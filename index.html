@@ -7,89 +7,50 @@
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+    background: #66c;
     text-align: center;
     padding: 20px;
-    margin-top: 20px;
     color: #fff;
   }
-  h1 { font-size: 2.5em; margin-bottom: 10px; }
-  #creator { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
-  #spielerInput {
-    margin-bottom: 20px;
-  }
-  label {
-    margin: 0 10px;
-  }
-  #startBtn, #restartBtn {
-    padding: 10px 20px;
-    margin: 10px;
-    font-size: 1em;
-    border: none;
-    border-radius: 8px;
-    background: #fff;
-    cursor: pointer;
-    box-shadow: 2px 2px 8px #000;
-  }
-  #startBtn:hover, #restartBtn:hover {
-    background: #ffe;
-  }
+  h1 { margin-bottom: 10px; }
   #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
-    gap: 15px;
-    justify-content: center;
+    gap: 10px;
     margin: 20px auto;
   }
   .cell {
     width: 100px;
     height: 100px;
-    font-size: 2.5em;
+    font-size: 2em;
+    background: #fff;
+    color: #000;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    background: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: inset 0 0 10px #0003, 0 4px 8px #0003;
     transition: all 0.3s;
   }
-  .x { background-color: #ffe0e0; color: #b00; border: 3px solid #b00; }
-  .o { background-color: #e0e0ff; color: #00b; border: 3px solid #00b; }
+  .cell:hover { transform: scale(1.05); box-shadow: inset 0 0 15px #0005, 0 6px 12px #0005; }
   #status { margin-top: 20px; font-size: 1.2em; }
-  #punkte { margin-top: 10px; font-size: 1em; }
   #werbung {
     margin-top: 30px;
-    padding: 10px;
-    background-color: #ccc;
-    color: #000;
     width: 300px;
     height: 250px;
+    background: #ccc;
     margin-left: auto;
     margin-right: auto;
-    text-align: center;
+    line-height: 250px;
+    font-size: 1.2em;
   }
 </style>
 </head>
 <body>
 
 <h1>Tic Tac Toe</h1>
-<div id="creator">Spiel erstellt von Rudi Schneider</div>
-
-<!-- Eingabefelder für Namen -->
-<div id="spielerInput">
-  <h2>Spielername eingeben</h2>
-  <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
-  <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
-  <br>
-  <button id="startBtn">Starten</button>
-</div>
-
-<div id="spielInfo"></div>
-<div id="status">Bitte Namen eingeben und starten!</div>
-<div id="punkte"></div>
-
-<!-- Spielbrett -->
+<div id="status">Klick auf ein Feld, um zu starten!</div>
 <div id="board">
   <div class="cell" data-index="0"></div>
   <div class="cell" data-index="1"></div>
@@ -103,108 +64,65 @@
 </div>
 
 <!-- Werbung -->
-<div id="werbung">
-  Werbung hier
-</div>
-
-<!-- Neustart Button -->
-<button id="restartBtn" style="display:none;">Neustarten</button>
+<div id="werbung">Werbung hier</div>
 
 <script>
 const cells = document.querySelectorAll('.cell');
-const statusDiv = document.getElementById('status');
-const spielerNamesDiv = document.getElementById('spielInfo');
-const startBtn = document.getElementById('startBtn');
-const restartBtn = document.getElementById('restartBtn');
-
 let board = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
 let gameActive = false;
 
-let player1Name = '';
-let player2Name = '';
-
-let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
-let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
-
 const winCond = [
-  [0,1,2], [3,4,5], [6,7,8],
-  [0,3,6], [1,4,7], [2,5,8],
-  [0,4,8], [2,4,6]
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
 ];
 
-const punktAnzeige1 = document.createElement('div');
-const punktAnzeige2 = document.createElement('div');
-function updatePunkte() {
-  punktAnzeige1.innerHTML = `Spieler 1 (X): ${punkteSpieler1}`;
-  punktAnzeige2.innerHTML = `Spieler 2 (O): ${punkteSpieler2}`;
-  document.body.insertBefore(punktAnzeige1, document.body.firstChild);
-  document.body.insertBefore(punktAnzeige2, document.body.firstChild);
-}
-updatePunkte();
-
-// Modus (nur gegen Freund)
-document.getElementById('gegenFreund').onclick = () => {
-  gegenComputer = false;
-  document.getElementById('spielerInput').style.display = 'block';
-  document.getElementById('restartBtn').style.display='none';
-  document.getElementById('schwierigkeit').style.display='none';
-  document.getElementById('status').innerText = 'Namen eingeben und starten!';
-};
-// Start Button
-startBtn.onclick = () => {
-  player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
-  player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
-  startGame();
-};
-function startGame() {
-  document.getElementById('spielerNames').innerText = `${player1Name} (X) vs ${player2Name} (O)`;
-  statusDiv.innerText = `Start! ${player1Name} ist am Zug.`;
+function startSpiel() {
   board = ['', '', '', '', '', '', '', '', ''];
   cells.forEach(c => { c.innerText=''; c.className='cell'; });
   currentPlayer = 'X';
   gameActive = true;
-  document.getElementById('restartBtn').style.display='block';
+  document.getElementById('status').innerText = 'Spiel gestartet! X ist am Zug.';
 }
 
-// Spiel
 cells.forEach(c => {
   c.onclick = () => {
-    if (!gameActive) return;
-    const index = c.dataset.index;
-    if (board[index] !== '') return;
-    board[index] = currentPlayer;
+    if (!gameActive) {
+      startSpiel();
+      return;
+    }
+    const idx = c.dataset.index;
+    if (board[idx] !== '') return;
+    board[idx] = currentPlayer;
     c.innerText = currentPlayer;
-    c.className='cell ' + currentPlayer.toLowerCase();
-    checkGame();
+    c.className='cell ' + (currentPlayer==='X'?'x':'o');
+
+    if (checkWin()) {
+      alert(currentPlayer + ' gewinnt!');
+      gameActive = false;
+      return;
+    }
+    if (board.every(c => c !== '')) {
+      alert('Unentschieden!');
+      gameActive = false;
+      return;
+    }
+    currentPlayer = currentPlayer==='X'?'O':'X';
+    document.getElementById('status').innerText = currentPlayer + ' ist am Zug';
   };
 });
-function checkGame() {
-  if (checkWin()) {
-    alert(`${currentPlayer==='X'?player1Name:player2Name} gewinnt!`);
-    if (currentPlayer==='X') {
-      punkteSpieler1++; localStorage.setItem('punkteSpieler1', punkteSpieler1);
-    } else {
-      punkteSpieler2++; localStorage.setItem('punkteSpieler2', punkteSpieler2);
-    }
-    updatePunkte();
-    gameActive = false;
-    return;
-  }
-  if (board.every(c => c !== '')) {
-    alert('Unentschieden!');
-    gameActive = false;
-    return;
-  }
-  // Spieler wechseln
-  currentPlayer = (currentPlayer==='X') ? 'O' : 'X';
-  let name = currentPlayer==='X' ? player1Name : player2Name;
-  document.getElementById('status').innerText = 'Dein Zug: ' + name + ' (' + currentPlayer + ')';
-}
-// Gewinn prüfen
+
 function checkWin() {
-  return [
-    [0,1,2], [3,4,5], [6,7,8],
-    [0,3,6], [1,4,7], [2,5,8],
-    [0,4,8], [2,4,6]
-  ].some(c =>
+  return winCond.some(c => {
+    const [a,b,c1] = c;
+    return board[a]!=='' && board[a]===board[b] && board[b]===board[c1];
+  });
+}
+
+// Spiel starten beim Laden
+startSpiel();
+</script>
+
+</body>
+</html>
