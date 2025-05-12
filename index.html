@@ -3,38 +3,63 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tic Tac Toe</title>
+<title>Tic Tac Toe + Werbung</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: #66c;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
     text-align: center;
     padding: 20px;
+    margin-top: 20px;
     color: #fff;
   }
-  h1 { margin-bottom: 10px; }
+  h1 { font-size: 2.5em; margin-bottom: 10px; }
+  #creator { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
+  #spielerInput {
+    margin-bottom: 20px;
+  }
+  label {
+    margin: 0 10px;
+  }
+  #startBtn, #restartBtn {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 2px 2px 8px #000;
+  }
+  #startBtn:hover, #restartBtn:hover {
+    background: #ffe;
+  }
   #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
-    gap: 10px;
+    gap: 15px;
+    justify-content: center;
     margin: 20px auto;
   }
   .cell {
     width: 100px;
     height: 100px;
-    font-size: 2em;
-    background: #fff;
-    color: #000;
+    font-size: 2.5em;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 8px;
+    background: #fff;
+    border-radius: 12px;
     box-shadow: inset 0 0 10px #0003, 0 4px 8px #0003;
     transition: all 0.3s;
   }
-  .cell:hover { transform: scale(1.05); box-shadow: inset 0 0 15px #0005, 0 6px 12px #0005; }
+  .x { background-color: #ffe0e0; color: #b00; border: 3px solid #b00; }
+  .o { background-color: #e0e0ff; color: #00b; border: 3px solid #00b; }
   #status { margin-top: 20px; font-size: 1.2em; }
+  #punkte { margin-top: 10px; font-size: 1em; }
+
+  /* Werbung unten */
   #werbung {
     margin-top: 30px;
     width: 300px;
@@ -44,13 +69,29 @@
     margin-right: auto;
     line-height: 250px;
     font-size: 1.2em;
+    color: #000;
   }
 </style>
 </head>
 <body>
 
 <h1>Tic Tac Toe</h1>
-<div id="status">Klick auf ein Feld, um zu starten!</div>
+<div id="creator">Spiel erstellt von Rudi Schneider</div>
+
+<!-- Eingabe für Namen -->
+<div id="spielerInput">
+  <h2>Spielername eingeben</h2>
+  <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
+  <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
+  <br>
+  <button id="startBtn">Starten</button>
+</div>
+
+<div id="spielInfo"></div>
+<div id="status">Bitte Namen eingeben und starten!</div>
+<div id="punkte"></div>
+
+<!-- Spielbrett -->
 <div id="board">
   <div class="cell" data-index="0"></div>
   <div class="cell" data-index="1"></div>
@@ -66,40 +107,88 @@
 <!-- Werbung -->
 <div id="werbung">Werbung hier</div>
 
+<!-- Button Neustart -->
+<button id="restartBtn" style="display:none;">Neustarten</button>
+
+<!-- AdSense Werbung -->
+<!-- Wichtig: nur einmal im <head> -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+<!-- Deine Anzeige (ersetze Slot) -->
+<ins class="adsbygoogle"
+     style="display:block; width:300px; height:250px; margin:auto;"
+     data-ad-client="ca-pub-8884956532342899"
+     data-ad-slot="6241835182"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
 <script>
 const cells = document.querySelectorAll('.cell');
+const statusDiv = document.getElementById('status');
+const spielerNamesDiv = document.getElementById('spielInfo');
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
+
 let board = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
 let gameActive = false;
 
+let player1Name = '';
+let player2Name = '';
+
+let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
+let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
+
 const winCond = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
+  [0,1,2], [3,4,5], [6,7,8],
+  [0,3,6], [1,4,7], [2,5,8],
+  [0,4,8], [2,4,6]
 ];
 
-function startSpiel() {
+const punktAnzeige1 = document.createElement('div');
+const punktAnzeige2 = document.createElement('div');
+
+function updatePunkte() {
+  punktAnzeige1.innerHTML = `Spieler 1 (X): ${punkteSpieler1}`;
+  punktAnzeige2.innerHTML = `Spieler 2 (O): ${punkteSpieler2}`;
+  document.body.insertBefore(punktAnzeige1, document.body.firstChild);
+  document.body.insertBefore(punktAnzeige2, document.body.firstChild);
+}
+updatePunkte();
+
+document.getElementById('startBtn').onclick = () => {
+  player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
+  player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
+
+  document.getElementById('spielInfo').innerText = `${player1Name} (X) vs ${player2Name} (O)`;
+  document.getElementById('status').innerText = `Start! ${player1Name} ist am Zug.`;
   board = ['', '', '', '', '', '', '', '', ''];
   cells.forEach(c => { c.innerText=''; c.className='cell'; });
   currentPlayer = 'X';
   gameActive = true;
-  document.getElementById('status').innerText = 'Spiel gestartet! X ist am Zug.';
-}
+};
 
+// Spiel starten
 cells.forEach(c => {
   c.onclick = () => {
-    if (!gameActive) {
-      startSpiel();
-      return;
-    }
-    const idx = c.dataset.index;
-    if (board[idx] !== '') return;
-    board[idx] = currentPlayer;
+    if (!gameActive) return;
+    const index = c.dataset.index;
+    if (board[index] !== '') return;
+    board[index] = currentPlayer;
     c.innerText = currentPlayer;
     c.className='cell ' + (currentPlayer==='X'?'x':'o');
 
     if (checkWin()) {
       alert(currentPlayer + ' gewinnt!');
+      if (currentPlayer==='X') {
+        punkteSpieler1++; localStorage.setItem('punkteSpieler1', punkteSpieler1);
+      } else {
+        punkteSpieler2++; localStorage.setItem('punkteSpieler2', punkteSpieler2);
+      }
+      updatePunkte();
       gameActive = false;
       return;
     }
@@ -108,8 +197,10 @@ cells.forEach(c => {
       gameActive = false;
       return;
     }
+    // Spieler wechseln
     currentPlayer = currentPlayer==='X'?'O':'X';
-    document.getElementById('status').innerText = currentPlayer + ' ist am Zug';
+    let name = currentPlayer==='X'?player1Name:player2Name;
+    document.getElementById('status').innerText = 'Dein Zug: ' + name + ' (' + currentPlayer + ')';
   };
 });
 
@@ -119,9 +210,6 @@ function checkWin() {
     return board[a]!=='' && board[a]===board[b] && board[b]===board[c1];
   });
 }
-
-// Spiel starten beim Laden
-startSpiel();
 </script>
 
 </body>
