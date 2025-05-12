@@ -3,16 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Meine Seite mit Tetris</title>
+<title>Tic Tac Toe</title>
 <style>
   body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #89f7fe, #66a6ff);
     text-align: center;
-    margin: 20px;
+    margin-top: 20px;
+    color: #fff;
   }
-  h1 { margin-bottom: 10px; }
-  button {
+  h1 { font-size: 2.5em; margin-bottom: 10px; }
+  #creator { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
+  #spielerInput {
+    margin-bottom: 20px;
+  }
+  label {
+    margin: 0 10px;
+  }
+  #startBtn, #restartBtn {
     padding: 10px 20px;
     margin: 10px;
     font-size: 1em;
@@ -22,36 +30,181 @@
     cursor: pointer;
     box-shadow: 2px 2px 8px #000;
   }
-  button:hover { background: #ffe; }
-
-  #tetrisContainer {
-    margin-top: 20px;
-    display: none; /* versteckt, bis Button geklickt wird */
+  #startBtn:hover, #restartBtn:hover {
+    background: #ffe;
   }
-  iframe {
-    border: none;
-    width: 260px;
-    height: 440px;
+  #board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 15px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .cell {
+    width: 100px; height: 100px;
+    font-size: 2.5em; line-height: 100px;
+    background: #fff; border-radius: 12px;
+    box-shadow: inset 0 0 10px #0003, 0 4px 8px #0003;
+    cursor: pointer; font-weight: bold; color: #444;
+    transition: all 0.3s;
+  }
+  .x { background-color: #ffe0e0; color: #b00; border: 3px solid #b00; }
+  .o { background-color: #e0e0ff; color: #00b; border: 3px solid #00b; }
+  #status { margin-top: 20px; font-size: 1.2em; }
+  #punkte { margin-top: 10px; font-size: 1em; }
+
+  /* Werbung unten */
+  #werbung {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #ccc;
+    color: #000;
+    width: 300px;
+    height: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-size: 1.2em;
   }
 </style>
 </head>
 <body>
 
-<h1>Willkommen auf meiner Seite</h1>
+<h1>Tic Tac Toe</h1>
+<div id="creator">Spiel erstellt von Rudi Schneider</div>
 
-<!-- Kategorie Button -->
-<button onclick="zeigeTetris()">Tetris in Kategorie</button>
+<!-- Eingabefelder für Namen -->
+<div id="spielerInput">
+  <h2>Spielername eingeben</h2>
+  <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
+  <label>Spieler 2 (O): <input type="text" id="player2" placeholder="Name Spieler 2" /></label>
+  <br>
+  <button id="startBtn">Starten</button>
+</div>
 
-<!-- Container für das Tetris-Spiel -->
-<div id="tetrisContainer">
-  <iframe src="https://snajder777.github.io/Tic-Tac-Toe/tetris.html"></iframe>
+<div id="spielInfo"></div>
+<div id="status">Bitte Namen eingeben und starten!</div>
+<div id="punkte"></div>
+
+<div id="board">
+  <div class="cell" data-index="0"></div>
+  <div class="cell" data-index="1"></div>
+  <div class="cell" data-index="2"></div>
+  <div class="cell" data-index="3"></div>
+  <div class="cell" data-index="4"></div>
+  <div class="cell" data-index="5"></div>
+  <div class="cell" data-index="6"></div>
+  <div class="cell" data-index="7"></div>
+  <div class="cell" data-index="8"></div>
+</div>
+
+<button id="restartBtn" style="display:none;">Neustarten</button>
+
+<!-- Werbung -->
+<div id="werbung">
+  Werbung hier
 </div>
 
 <script>
-function zeigeTetris() {
-  document.getElementById('tetrisContainer').style.display = 'block';
-}
-</script>
+const cells = document.querySelectorAll('.cell');
+const statusDiv = document.getElementById('status');
+const punkteDiv = document.getElementById('punkte');
+const spielerInfoDiv = document.getElementById('spielInfo');
 
-</body>
-</html>
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
+
+let board = ['', '', '', '', '', '', '', '', ''];
+let currentPlayer = 'X';
+let gameActive = false;
+let player1Name = '';
+let player2Name = '';
+
+const winCond = [
+  [0,1,2], [3,4,5], [6,7,8],
+  [0,3,6], [1,4,7], [2,5,8],
+  [0,4,8], [2,4,6]
+];
+
+let punkteSpieler1 = parseInt(localStorage.getItem('punkteSpieler1')) || 0;
+let punkteSpieler2 = parseInt(localStorage.getItem('punkteSpieler2')) || 0;
+
+function updatePunkte() {
+  punkteDiv.innerHTML = `Punkte: ${player1Name} (X): ${punkteSpieler1} &nbsp;&nbsp; ${player2Name} (O): ${punkteSpieler2}`;
+}
+updatePunkte();
+
+startBtn.onclick = () => {
+  player1Name = document.getElementById('player1').value.trim() || 'Spieler 1';
+  player2Name = document.getElementById('player2').value.trim() || 'Spieler 2';
+
+  document.getElementById('spielInfo').innerText = `${player1Name} (X) vs ${player2Name} (O)`;
+  document.getElementById('status').innerText = `Start! ${player1Name} ist am Zug.`;
+  board = ['', '', '', '', '', '', '', '', ''];
+  cells.forEach(c => { c.innerText=''; c.className='cell'; });
+  currentPlayer = 'X';
+  gameActive = true;
+  document.getElementById('restartBtn').style.display='block';
+
+  // Spiel starten
+  handlePlayerMove();
+};
+
+function handlePlayerMove() {
+  if (!gameActive) return;
+  // Bei "Gegen Freund" ist alles ok.
+  // Bei "Gegen Computer": nach deinem Zug, Computer automatisch
+  if (gegenComputer && currentPlayer==='O') {
+    setTimeout(computerMove, 500); // kleine Verzögerung
+  }
+}
+
+// Spiel-Logik
+cells.forEach(c => {
+  c.onclick = () => {
+    if (!gameActive) return;
+    const index = c.dataset.index;
+    if (board[index] !== '') return;
+    board[index] = currentPlayer;
+    c.innerText = currentPlayer;
+    c.className='cell ' + currentPlayer.toLowerCase();
+    checkGame();
+  };
+});
+
+function checkGame() {
+  if (checkWin()) {
+    let winnerName = currentPlayer==='X' ? player1Name : player2Name;
+    alert(winnerName + ' gewinnt!');
+    if (currentPlayer==='X') { punkteSpieler1++; localStorage.setItem('punkteSpieler1', punkteSpieler1); }
+    else { punkteSpieler2++; localStorage.setItem('punkteSpieler2', punkteSpieler2); }
+    updatePunkte();
+    gameActive = false;
+    return;
+  }
+  if (board.every(c => c !== '')) {
+    alert('Unentschieden!');
+    gameActive = false;
+    return;
+  }
+  // Spieler wechseln
+  currentPlayer = (currentPlayer==='X') ? 'O' : 'X';
+  let name = currentPlayer==='X' ? player1Name : player2Name;
+  document.getElementById('status').innerText = 'Dein Zug: ' + name + ' (' + currentPlayer + ')';
+  handlePlayerMove();
+}
+
+function checkWin() {
+  return winCond.some(c => {
+    const [a,b,c1] = c;
+    return board[a] !== '' && board[a]===board[b] && board[b]===board[c1];
+  });
+}
+
+// Computer Zug (leicht)
+function computerMove() {
+  let emptyCells = [];
+  board.forEach((c,i) => { if (c==='') emptyCells.push(i); });
+  if (emptyCells.length===0) return; // Spielende
+  let moveIndex = emptyCells[Math.floor(Math.random()*emptyCells.length)];
+  board[moveIndex] = 'O';
