@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tic Tac Toe + Werbung</title>
+<!-- Google Verifizierungs-Code -->
+<meta name="google-site-verification" content="95by_B3PFINR5xNptpXpU4g8LTXl_GmZgFNAhSNYnCc" />
+
+<title>Tic Tac Toe</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -58,8 +61,6 @@
   .o { background-color: #e0e0ff; color: #00b; border: 3px solid #00b; }
   #status { margin-top: 20px; font-size: 1.2em; }
   #punkte { margin-top: 10px; font-size: 1em; }
-
-  /* Werbung unten */
   #werbung {
     margin-top: 30px;
     width: 300px;
@@ -69,7 +70,6 @@
     margin-right: auto;
     line-height: 250px;
     font-size: 1.2em;
-    color: #000;
   }
 </style>
 </head>
@@ -78,7 +78,7 @@
 <h1>Tic Tac Toe</h1>
 <div id="creator">Spiel erstellt von Rudi Schneider</div>
 
-<!-- Eingabe für Namen -->
+<!-- Eingabefelder für Namen -->
 <div id="spielerInput">
   <h2>Spielername eingeben</h2>
   <label>Spieler 1 (X): <input type="text" id="player1" placeholder="Name Spieler 1" /></label>
@@ -107,14 +107,11 @@
 <!-- Werbung -->
 <div id="werbung">Werbung hier</div>
 
-<!-- Button Neustart -->
+<!-- Neustart -->
 <button id="restartBtn" style="display:none;">Neustarten</button>
 
-<!-- AdSense Werbung -->
-<!-- Wichtig: nur einmal im <head> -->
+<!-- Google AdSense Code (einfügen in die Seite) -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-
-<!-- Deine Anzeige (ersetze Slot) -->
 <ins class="adsbygoogle"
      style="display:block; width:300px; height:250px; margin:auto;"
      data-ad-client="ca-pub-8884956532342899"
@@ -211,6 +208,3 @@ function checkWin() {
   });
 }
 </script>
-
-</body>
-</html>
